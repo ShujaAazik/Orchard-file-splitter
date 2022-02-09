@@ -14,7 +14,7 @@ namespace Orchard_file_splitter
         private readonly string WithoutContractsFolder;
         private readonly string ProcessedFileFolder;
         private readonly string ErrorFileFolder;
-        private readonly string QUOTE = "\"";
+        private static readonly string QUOTE = "\"";
 
         public FileSplitter(string WithContractsFolder, string WithoutContractsFolder, string ProcessedFileFolder)
         {
@@ -30,68 +30,78 @@ namespace Orchard_file_splitter
 
         public void SplitFile(string InputFilesFolderPath, string[] contractNos)
         {
-            var withContract = new List<string>();
-            var withoutContract = new List<string>();
             var errorFileList = new List<string>();
 
             foreach (var file in Directory.GetFiles(InputFilesFolderPath))
             {
-                Console.WriteLine("Splitting Process Started.\n");
-                var fileName = Path.GetFileName(file);
-                if (!fileName.ToLower().Contains("jd"))
+                try
                 {
-                    FileHandling.CopyFile(file, Path.Combine(WithContractsFolder, fileName));
-                    FileHandling.CopyFile(file, Path.Combine(WithoutContractsFolder, fileName));
-                    FileHandling.MoveFile(file, Path.Combine(ProcessedFileFolder, fileName));
-                    continue;
+                    var fileName = Path.GetFileName(file);
+                    if (!fileName.ToLower().Contains("jd"))
+                    {
+                        FileHandling.CopyFile(file, Path.Combine(WithContractsFolder, fileName));
+                        FileHandling.CopyFile(file, Path.Combine(WithoutContractsFolder, fileName));
+                        FileHandling.MoveFile(file, Path.Combine(ProcessedFileFolder, fileName));
+                        continue;
+                    }
+
+                    Split(file, contractNos, ref errorFileList);
+                    FileHandling.MoveFile(file, Path.Combine(ProcessedFileFolder, Path.GetFileName(file)));
                 }
-
-                Console.WriteLine($"{File.ReadAllLines(file).Count()} line were found in the {fileName} file.\n");
-
-                int index = 0;
-                foreach (var line in File.ReadAllLines(file))
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        var row = line.Split(new char[] { ' ' });
-                        row = RefineColumns(row);
-                        if (contractNos.Any(contactNo => contactNo.Equals(row[34])))
-                        {
-                            withContract.Add(line);
-                            Console.WriteLine($"1 line has been identified as with Contract\n");
-                        }
-                        else
-                        {
-                            withoutContract.Add(line);
-                            Console.WriteLine($"1 line has been identified as without Contract\n");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"1 line has been identified as Error\n");
-                        Console.WriteLine(ex.Message);
-                        errorFileList.Add($"File Name: {fileName} \t Error: {ex.Message} \t Line No: {index} \t Time Occured: {DateTime.Now}");
-                    }
-                    index++;
+                    Console.WriteLine($"1 Error has Occured in Splitting Process\n");
+                    Console.WriteLine(ex.Message);
+                    errorFileList.Add($"File Name: {Path.GetFileName(file)} \t Error: {ex.Message} \t Time Occured: {DateTime.Now}");
                 }
-
-                foreach(var contract in new List<string>[] { withContract, withoutContract })
-                {
-                    try
-                    {
-                        WriteToDirectory(Path.Combine(WithContractsFolder, fileName), withContract, "with contract");
-                        WriteToDirectory(Path.Combine(WithoutContractsFolder, fileName), withoutContract, "without contract");
-                    }
-                    catch(Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
-
-                FileHandling.MoveFile(file, Path.Combine(ProcessedFileFolder, fileName));
             }
             WriteToDirectory(Path.Combine(ErrorFileFolder, "Error File List"), errorFileList, "error");
-            Console.WriteLine("Splitting Process is Completed.");
+        }
+
+        private void Split(string file, string[] contractNos, ref List<string> errorFileList)
+        {
+            var withContract = new List<string>();
+            var withoutContract = new List<string>();
+            var fileName = Path.GetFileName(file);
+            Console.WriteLine($"{File.ReadAllLines(file).Count()} line were found in the {Path.GetFileName(file)} file.\n");
+
+            int index = 0;
+            foreach (var line in File.ReadAllLines(file))
+            {
+                try
+                {
+                    var row = line.Split(new char[] { ' ' });
+                    row = RefineColumns(row);
+                    if (contractNos.Any(contactNo => contactNo.Equals(row[34])))
+                    {
+                        withContract.Add(line);
+                        Console.WriteLine($"1 line has been identified as with Contract\n");
+                    }
+                    else
+                    {
+                        withoutContract.Add(line);
+                        Console.WriteLine($"1 line has been identified as without Contract\n");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"1 line has been identified as Error\n");
+                    Console.WriteLine(ex.Message);
+                    errorFileList.Add($"File Name: {Path.GetFileName(file)} \t Error: {ex.Message} \t Line No: {index} \t Time Occured: {DateTime.Now}");
+                }
+                index++;
+            }
+
+            try
+            {
+                WriteToDirectory(Path.Combine(WithContractsFolder, Path.GetFileName(file)), withContract, "with contract");
+                WriteToDirectory(Path.Combine(WithoutContractsFolder, Path.GetFileName(file)), withoutContract, "without contract");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                errorFileList.Add($"File Name: {Path.GetFileName(file)} \t Error: {ex.Message} \t Time Occured: {DateTime.Now}");
+            }
         }
 
         private void WriteToDirectory(string destinationDirectoryPath, List<string> fileList, string fileType)
@@ -103,7 +113,7 @@ namespace Orchard_file_splitter
             }
         }
 
-        private string[] RefineColumns(string[] rows)
+        private static string[] RefineColumns(string[] rows)
         {
             var refinedRow = new List<string>();
             var data = new StringBuilder();

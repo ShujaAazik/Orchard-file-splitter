@@ -18,23 +18,10 @@ namespace Orchard_file_splitter
             string ProcessedFileFolder = ConfigurationManager.AppSettings["ProcessedFileFolder"];
             string ContractNos = ConfigurationManager.AppSettings["ContractNos"];
 
-            try
-            {
-                FileSplitter fileSplitter = new FileSplitter(WithContractsFolder, WithoutContractsFolder, ProcessedFileFolder);
-                fileSplitter.SplitFile(InputFilesFolderPath, ContractNos.Split(','));
-            }
-            catch (IOException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch(ArgumentException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            FileSplitter fileSplitter = new FileSplitter(WithContractsFolder, WithoutContractsFolder, ProcessedFileFolder);
+            Console.WriteLine("Splitting Process Started.\n");
+            fileSplitter.SplitFile(InputFilesFolderPath, ContractNos.Split(','));
+            Console.WriteLine("Splitting Process is Completed.");
         }
     }
 }
