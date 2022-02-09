@@ -92,16 +92,8 @@ namespace Orchard_file_splitter
                 index++;
             }
 
-            try
-            {
-                WriteToDirectory(Path.Combine(WithContractsFolder, Path.GetFileName(file)), withContract, "with contract");
-                WriteToDirectory(Path.Combine(WithoutContractsFolder, Path.GetFileName(file)), withoutContract, "without contract");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                errorFileList.Add($"File Name: {Path.GetFileName(file)} \t Error: {ex.Message} \t Time Occured: {DateTime.Now}");
-            }
+            WriteToDirectory(Path.Combine(WithContractsFolder, Path.GetFileName(file)), withContract, "with contract");
+            WriteToDirectory(Path.Combine(WithoutContractsFolder, Path.GetFileName(file)), withoutContract, "without contract");
         }
 
         private void WriteToDirectory(string destinationDirectoryPath, List<string> fileList, string fileType)
