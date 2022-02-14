@@ -18,13 +18,10 @@ namespace Orchard_file_splitter
 
         public FileSplitter(string WithContractsFolder, string WithoutContractsFolder, string ProcessedFileFolder)
         {
-            FileHandling.ValidateDirectory(WithContractsFolder);
             this.WithContractsFolder = WithContractsFolder;
-            FileHandling.ValidateDirectory(WithoutContractsFolder);
             this.WithoutContractsFolder = WithoutContractsFolder;
-            FileHandling.ValidateDirectory(ProcessedFileFolder);
             this.ProcessedFileFolder = ProcessedFileFolder;
-            FileHandling.ValidateDirectory(ConfigurationManager.AppSettings["ErrorFileFolder"]);
+            this.ProcessedFileFolder = ProcessedFileFolder;
             this.ErrorFileFolder = ConfigurationManager.AppSettings["ErrorFileFolder"];
         }
 
@@ -46,7 +43,7 @@ namespace Orchard_file_splitter
                     }
 
                     Split(file, contractNos, ref errorFileList);
-                    FileHandling.MoveFile(file, Path.Combine(ProcessedFileFolder, Path.GetFileName(file)));
+                    MoveFileToProcessedDirectory(file, Path.Combine(ProcessedFileFolder, Path.GetFileName(file)));
                 }
                 catch (Exception ex)
                 {
@@ -56,6 +53,7 @@ namespace Orchard_file_splitter
                 }
             }
             WriteToDirectory(Path.Combine(ErrorFileFolder, "Error File List"), errorFileList, "error");
+            
         }
 
         private void Split(string file, string[] contractNos, ref List<string> errorFileList)
@@ -94,6 +92,11 @@ namespace Orchard_file_splitter
 
             WriteToDirectory(Path.Combine(WithContractsFolder, Path.GetFileName(file)), withContract, "with contract");
             WriteToDirectory(Path.Combine(WithoutContractsFolder, Path.GetFileName(file)), withoutContract, "without contract");
+        }
+
+        private void MoveFileToProcessedDirectory(string sourceFilePath, string destinationFilePath)
+        {
+            FileHandling.MoveFile(sourceFilePath, destinationFilePath);
         }
 
         private void WriteToDirectory(string destinationDirectoryPath, List<string> fileList, string fileType)
