@@ -38,7 +38,7 @@ namespace Orchard_file_splitter
                     {
                         FileHandling.CopyFile(file, Path.Combine(WithContractsFolder, fileName));
                         FileHandling.CopyFile(file, Path.Combine(WithoutContractsFolder, fileName));
-                        FileHandling.MoveFile(file, Path.Combine(ProcessedFileFolder, fileName));
+                        MoveFileToProcessedDirectory(file, Path.Combine(ProcessedFileFolder, fileName));
                         continue;
                     }
 
@@ -96,7 +96,15 @@ namespace Orchard_file_splitter
 
         private void MoveFileToProcessedDirectory(string sourceFilePath, string destinationFilePath)
         {
-            FileHandling.MoveFile(sourceFilePath, destinationFilePath);
+            if (FileHandling.isFileExist(sourceFilePath) && !FileHandling.isFileExist(destinationFilePath))
+            {
+                FileHandling.MoveFile(sourceFilePath, destinationFilePath);
+            }
+            else
+            {
+                FileHandling.RemoveFile(sourceFilePath);
+                throw new IOException("The destination file already exists. -or- sourceFileName was not found.");
+            }
         }
 
         private void WriteToDirectory(string destinationDirectoryPath, List<string> fileList, string fileType)

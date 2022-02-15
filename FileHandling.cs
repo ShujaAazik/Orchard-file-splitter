@@ -27,12 +27,22 @@ namespace Orchard_file_splitter
             Console.WriteLine($"{Path.GetFileName(sourceFilePath)} has been moved to the {Path.GetDirectoryName(destinationFilePath)} Directory\n");
         }
 
+        public static void RemoveFile(string filePath)
+        {
+            File.Delete(filePath);
+        }
+
         public static void ValidateDirectory(string directoryPath)
         {
             if(!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
+        }
+
+        public static bool isFileExist(string filePath)
+        {
+            return File.Exists(filePath);
         }
     }
 }
